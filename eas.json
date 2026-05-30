@@ -1,0 +1,43 @@
+{
+  "cli": {
+    "version": ">= 13.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "ios": {
+        "image": "latest"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6775036750",
+        "ascApiKeyPath": "C:/Users/13219/Downloads/AuthKey_YRMDQTX998.p8",
+        "ascApiKeyId": "YRMDQTX998",
+        "ascApiKeyIssuerId": "b7b9dd56-d867-4b33-b6e0-21e133f8bf12"
+      }
+    }
+  }
+}

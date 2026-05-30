@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type ComponentProps, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,9 +15,15 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '@/constants/theme';
-import { getScript } from '@/lib/storage';
+import {
+  getScript,
+  getSessionsUsed,
+  incrementSessionsUsed,
+  FREE_SESSIONS,
+} from '@/lib/storage';
 import type { Script } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
+import { usePro } from '@/lib/purchases';
 import { Prompter, type PrompterHandle } from '@/components/Prompter';
 import { ReadingGuide } from '@/components/ReadingGuide';
 import { IconButton } from '@/components/IconButton';
@@ -34,11 +40,75 @@ function fmtClock(totalSec: number): string {
 
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+function Stepper({
+  label,
+  value,
+  onDown,
+  onUp,
+}: {
+  label: string;
+  value: number | string;
+  onDown: () => void;
+  onUp: () => void;
+}) {
+  return (
+    <View style={styles.stepper}>
+      <Text style={styles.stepperLabel}>{label}</Text>
+      <View style={styles.stepperRow}>
+        <Pressable
+          onPress={onDown}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={`Lower ${label}`}
+          style={({ pressed }) => [styles.stepBtn, pressed && styles.pressed]}
+        >
+          <Ionicons name="remove" size={22} color={colors.text} />
+        </Pressable>
+        <Text style={styles.stepperValue}>{value}</Text>
+        <Pressable
+          onPress={onUp}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={`Raise ${label}`}
+          style={({ pressed }) => [styles.stepBtn, pressed && styles.pressed]}
+        >
+          <Ionicons name="add" size={22} color={colors.text} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function TransportButton({
+  icon,
+  label,
+  onPress,
+  accessibilityLabel,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+  accessibilityLabel: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [styles.transportBtn, pressed && styles.pressed]}
+    >
+      <Ionicons name={icon} size={26} color={colors.text} />
+      <Text style={styles.transportLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function TeleprompterScreen() {
   useKeepAwake();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const s = useSettings();
+  const { isPro, gated } = usePro();
 
   const [script, setScript] = useState<Script | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -46,10 +116,12 @@ export default function TeleprompterScreen() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [recSeconds, setRecSeconds] = useState(0);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const cameraRef = useRef<CameraView>(null);
   const prompterRef = useRef<PrompterHandle>(null);
   const stopRequested = useRef(false);
+  const sessionCounted = useRef(false);
 
   const [camPerm, requestCamPerm] = useCameraPermissions();
   const [micPerm, requestMicPerm] = useMicrophonePermissions();
@@ -87,6 +159,21 @@ export default function TeleprompterScreen() {
     requestMediaPerm,
   ]);
 
+  // Free-session gate: allow FREE_SESSIONS uses, then require the one-time unlock.
+  // One teleprompter open counts as at most one session. Unlimited once unlocked,
+  // and a no-op when purchases aren't enforced (Expo Go / unconfigured build).
+  const consumeSession = useCallback(async (): Promise<boolean> => {
+    if (!gated || isPro || sessionCounted.current) return true;
+    const used = await getSessionsUsed();
+    if (used >= FREE_SESSIONS) {
+      router.replace({ pathname: '/paywall', params: { next: id } });
+      return false;
+    }
+    await incrementSessionsUsed();
+    sessionCounted.current = true;
+    return true;
+  }, [gated, isPro, id]);
+
   const runCountdown = useCallback(async (from: number) => {
     for (let n = from; n >= 1; n--) {
       setCountdown(n);
@@ -117,7 +204,8 @@ export default function TeleprompterScreen() {
   );
 
   // Practice scroll only (no recording).
-  const togglePlay = () => {
+  const togglePlay = async () => {
+    if (!playing && !(await consumeSession())) return;
     setControlsVisible(true);
     setPlaying((p) => !p);
   };
@@ -128,6 +216,7 @@ export default function TeleprompterScreen() {
   };
 
   const startRecording = useCallback(async () => {
+    if (!(await consumeSession())) return;
     const ok = await ensurePermissions();
     if (!ok) {
       Alert.alert(
@@ -136,9 +225,19 @@ export default function TeleprompterScreen() {
       );
       return;
     }
+    if (!cameraReady) {
+      Alert.alert('One moment', 'The camera is still starting up. Try again in a second.');
+      return;
+    }
     prompterRef.current?.reset();
     stopRequested.current = false;
     if (s.countdown > 0) await runCountdown(s.countdown);
+    if (stopRequested.current) return;
+
+    // Let CameraX finish binding the video use-case before we start the
+    // recorder. On some Android devices recordAsync() throws immediately if
+    // it's called the instant the preview becomes ready.
+    await delay(350);
     if (stopRequested.current) return;
 
     setRecording(true);
@@ -149,13 +248,29 @@ export default function TeleprompterScreen() {
       if (video?.uri) {
         await saveVideo(video.uri);
       }
-    } catch {
-      Alert.alert('Recording error', 'Something went wrong while recording.');
+    } catch (e) {
+      const err = e as { message?: string; code?: string; name?: string };
+      const detail = [err?.name, err?.code, err?.message]
+        .filter(Boolean)
+        .join(' / ');
+      let dump = '';
+      try {
+        dump = JSON.stringify(e, Object.getOwnPropertyNames(e ?? {}));
+      } catch {
+        dump = String(e);
+      }
+      console.error('[Prompterly] recordAsync failed:', detail, dump);
+      Alert.alert(
+        'Recording error',
+        detail
+          ? `Recording failed: ${detail}`
+          : `Recording failed with no error detail.\n\n${dump || String(e)}`,
+      );
     } finally {
       setRecording(false);
       setPlaying(false);
     }
-  }, [ensurePermissions, runCountdown, s.countdown, saveVideo]);
+  }, [cameraReady, consumeSession, ensurePermissions, runCountdown, s.countdown, saveVideo]);
 
   const stopRecording = useCallback(() => {
     stopRequested.current = true;
@@ -205,6 +320,7 @@ export default function TeleprompterScreen() {
           style={StyleSheet.absoluteFill}
           facing={s.cameraFacing}
           mode="video"
+          onCameraReady={() => setCameraReady(true)}
         />
       ) : (
         <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]} />
@@ -309,37 +425,35 @@ export default function TeleprompterScreen() {
       {/* BOTTOM CONTROLS */}
       {controlsVisible && (
         <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.md }]}>
-          {/* Speed + font quick adjust */}
-          <View style={styles.adjustRow}>
-            <View style={styles.adjustGroup}>
-              <Text style={styles.adjustLabel}>Speed {s.speed}</Text>
-              <View style={styles.adjustBtns}>
-                <IconButton icon="remove" onPress={() => adjustSpeed(-5)} size={18} />
-                <IconButton icon="add" onPress={() => adjustSpeed(5)} size={18} />
-              </View>
-            </View>
-            <View style={styles.adjustGroup}>
-              <Text style={styles.adjustLabel}>Font {s.fontSize}</Text>
-              <View style={styles.adjustBtns}>
-                <IconButton icon="remove" onPress={() => adjustFont(-2)} size={18} />
-                <IconButton icon="add" onPress={() => adjustFont(2)} size={18} />
-              </View>
-            </View>
+          {/* Speed + font steppers */}
+          <View style={styles.steppersRow}>
+            <Stepper
+              label="Speed"
+              value={s.speed}
+              onDown={() => adjustSpeed(-5)}
+              onUp={() => adjustSpeed(5)}
+            />
+            <Stepper
+              label="Font"
+              value={s.fontSize}
+              onDown={() => adjustFont(-2)}
+              onUp={() => adjustFont(2)}
+            />
           </View>
 
-          {/* Transport */}
+          {/* Transport: Restart - Record/Stop - Scroll/Pause */}
           <View style={styles.transport}>
-            <IconButton
-              icon="play-skip-back"
-              onPress={restart}
+            <TransportButton
+              icon="refresh"
               label="Restart"
-              size={24}
+              onPress={restart}
+              accessibilityLabel="Restart from the top"
             />
 
             {s.cameraEnabled ? (
               <Pressable
                 onPress={onRecordPress}
-                style={styles.recordOuter}
+                style={({ pressed }) => [styles.recordOuter, pressed && styles.pressed]}
                 accessibilityRole="button"
                 accessibilityLabel={recording ? 'Stop recording' : 'Start recording'}
               >
@@ -353,33 +467,33 @@ export default function TeleprompterScreen() {
             ) : (
               <Pressable
                 onPress={togglePlay}
-                style={[styles.recordOuter, styles.playOuter]}
+                style={({ pressed }) => [
+                  styles.recordOuter,
+                  styles.playOuter,
+                  pressed && styles.pressed,
+                ]}
                 accessibilityRole="button"
                 accessibilityLabel={playing ? 'Pause' : 'Play'}
               >
-                <Ionicons
-                  name={playing ? 'pause' : 'play'}
-                  size={34}
-                  color="#fff"
-                />
+                <Ionicons name={playing ? 'pause' : 'play'} size={34} color="#fff" />
               </Pressable>
             )}
 
             {s.cameraEnabled ? (
-              <IconButton
+              <TransportButton
                 icon={playing ? 'pause' : 'play'}
-                onPress={togglePlay}
                 label={playing ? 'Pause' : 'Scroll'}
-                size={24}
+                onPress={togglePlay}
+                accessibilityLabel={playing ? 'Pause scrolling' : 'Start scrolling'}
               />
             ) : (
-              <IconButton
+              <TransportButton
                 icon="camera-reverse-outline"
+                label="Flip"
                 onPress={() =>
                   s.set('cameraFacing', s.cameraFacing === 'front' ? 'back' : 'front')
                 }
-                label="Flip"
-                size={24}
+                accessibilityLabel="Flip camera"
               />
             )}
           </View>
@@ -428,22 +542,66 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  adjustRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-  adjustGroup: {
+  steppersRow: { flexDirection: 'row', gap: spacing.md },
+  stepper: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: radius.md,
-    padding: spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: radius.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     gap: 6,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  adjustLabel: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  adjustBtns: { flexDirection: 'row', gap: spacing.sm },
+  stepperLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  stepBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperValue: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+    minWidth: 48,
+    textAlign: 'center',
+  },
+  pressed: { opacity: 0.6 },
   transport: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
   },
+  transportBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    minWidth: 88,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  transportLabel: { color: colors.text, fontSize: 12, fontWeight: '700' },
   recordOuter: {
     width: 76,
     height: 76,

@@ -2,6 +2,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NewScriptInput, Script } from './types';
 
 const SCRIPTS_KEY = 'prompterly.scripts.v1';
+const SESSIONS_KEY = 'prompterly.sessionsUsed.v1';
+
+/** Number of free teleprompter sessions before the one-time unlock is required. */
+export const FREE_SESSIONS = 5;
+
+export async function getSessionsUsed(): Promise<number> {
+  try {
+    const raw = await AsyncStorage.getItem(SESSIONS_KEY);
+    const n = raw ? parseInt(raw, 10) : 0;
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Records one used session and returns the new total. */
+export async function incrementSessionsUsed(): Promise<number> {
+  const next = (await getSessionsUsed()) + 1;
+  try {
+    await AsyncStorage.setItem(SESSIONS_KEY, String(next));
+  } catch {
+    // best-effort; counting a session is non-critical
+  }
+  return next;
+}
 
 // Average speaking pace used to estimate read time when none is recorded yet.
 const WORDS_PER_MINUTE = 140;

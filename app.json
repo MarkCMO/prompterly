@@ -24,7 +24,8 @@
         "NSMicrophoneUsageDescription": "Prompterly uses the microphone to record audio with your video.",
         "NSPhotoLibraryAddUsageDescription": "Prompterly saves your recordings to your photo library.",
         "NSPhotoLibraryUsageDescription": "Prompterly saves your recordings to your photo library.",
-        "UIBackgroundModes": []
+        "UIBackgroundModes": [],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -37,7 +38,15 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_MEDIA_VIDEO",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION"
       ]
     },
     "plugins": [
@@ -71,6 +80,23 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a93d66f5-b9ea-4b21-a47c-bbfce03df823"
+      },
+      "revenueCatIosKey": "appl_LUuUEYkrfkqwHBpTbatCcynxHiv",
+      "revenueCatAndroidKey": ""
+    },
+    "owner": "markgabrielli",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a93d66f5-b9ea-4b21-a47c-bbfce03df823"
     }
   }
 }

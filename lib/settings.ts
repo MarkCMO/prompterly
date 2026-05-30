@@ -38,7 +38,7 @@ interface SettingsActions {
 }
 
 export const DEFAULT_SETTINGS: Omit<PrompterSettings, 'hydrated'> = {
-  speed: 35,
+  speed: 25,
   fontSize: 34,
   lineHeight: 1.4,
   fontFamily: 'System',
@@ -75,9 +75,12 @@ export const useSettings = create<PrompterSettings & SettingsActions>()(
 
 /** Map the 1-100 speed scale to pixels-per-second of scroll. */
 export function speedToPxPerSec(speed: number): number {
-  // 1 -> ~12 px/s (very slow), 100 -> ~320 px/s (fast).
-  const min = 12;
-  const max = 320;
+  // Eased so most of the slider lives in comfortable reading territory.
+  // 1 -> ~8 px/s (very slow), 25 -> ~24 px/s (default, easy read),
+  // 50 -> ~57 px/s, 100 -> ~180 px/s (fast).
+  const min = 8;
+  const max = 180;
   const t = Math.min(100, Math.max(1, speed)) / 100;
-  return min + (max - min) * t;
+  const eased = Math.pow(t, 1.6);
+  return min + (max - min) * eased;
 }
