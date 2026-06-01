@@ -13,10 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '@/constants/theme';
-import { getUnlockPriceString, purchasePro, restorePro } from '@/lib/purchases';
+import { getPlans, purchasePlan, restorePro, type Plan, type PlanKey } from '@/lib/purchases';
 import { FREE_SESSIONS } from '@/lib/storage';
 
-const PRIVACY_URL = 'https://markcmo.com/prompterly-privacy';
+const PRIVACY_URL = 'https://wetyr-legal.pages.dev/privacy-prompterly';
 const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 const PERKS = [
@@ -28,15 +28,21 @@ const PERKS = [
   'Reading guide and countdown timer',
 ];
 
+// Fallback prices shown only if the store hasn't loaded yet.
+const FALLBACK: Record<PlanKey, string> = { weekly: '$4.99', monthly: '$14.99' };
+
 export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const { next } = useLocalSearchParams<{ next?: string }>();
-  const [price, setPrice] = useState<string | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selected, setSelected] = useState<PlanKey>('weekly');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    getUnlockPriceString()
-      .then(setPrice)
+    getPlans()
+      .then((p) => {
+        if (p.length) setPlans(p);
+      })
       .catch(() => {});
   }, []);
 
@@ -45,10 +51,14 @@ export default function PaywallScreen() {
     else router.back();
   }, [next]);
 
-  const onStart = useCallback(async () => {
+  const priceFor = (key: PlanKey) => plans.find((p) => p.key === key)?.price ?? FALLBACK[key];
+
+  const onContinue = useCallback(async () => {
+    const plan = plans.find((p) => p.key === selected);
     setBusy(true);
     try {
-      const ok = await purchasePro();
+      if (!plan) throw new Error('Plans are still loading. Please try again in a moment.');
+      const ok = await purchasePlan(plan.pkg);
       if (ok) onSuccess();
     } catch (e) {
       const err = e as { userCancelled?: boolean; message?: string };
@@ -58,17 +68,14 @@ export default function PaywallScreen() {
     } finally {
       setBusy(false);
     }
-  }, [onSuccess]);
+  }, [plans, selected, onSuccess]);
 
   const onRestore = useCallback(async () => {
     setBusy(true);
     try {
       const ok = await restorePro();
-      if (ok) {
-        onSuccess();
-      } else {
-        Alert.alert('Nothing to restore', 'We could not find an active subscription for this account.');
-      }
+      if (ok) onSuccess();
+      else Alert.alert('Nothing to restore', 'We could not find an active subscription for this account.');
     } catch {
       Alert.alert('Restore failed', 'Could not restore purchases. Please try again.');
     } finally {
@@ -76,7 +83,35 @@ export default function PaywallScreen() {
     }
   }, [onSuccess]);
 
-  const priceLabel = price ?? '$2.99';
+  const renderPlan = (key: PlanKey, period: string, featured: boolean) => {
+    const active = selected === key;
+    return (
+      <Pressable
+        key={key}
+        onPress={() => setSelected(key)}
+        style={[styles.plan, active && styles.planActive]}
+        accessibilityRole="button"
+        accessibilityLabel={`${priceFor(key)} per ${period}`}
+      >
+        {featured && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>BEST VALUE</Text>
+          </View>
+        )}
+        <View style={styles.radio}>
+          {active && <View style={styles.radioDot} />}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.planTitle}>{key === 'weekly' ? 'Weekly' : 'Monthly'}</Text>
+          <Text style={styles.planSub}>Billed every {period}, cancel anytime</Text>
+        </View>
+        <Text style={styles.planPrice}>
+          {priceFor(key)}
+          <Text style={styles.planPer}>/{period === 'week' ? 'wk' : 'mo'}</Text>
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <View style={styles.root}>
@@ -102,8 +137,7 @@ export default function PaywallScreen() {
 
         <Text style={styles.title}>Unlock Prompterly</Text>
         <Text style={styles.subtitle}>
-          You have used your {FREE_SESSIONS} free sessions. Unlock the full app with a
-          one-time purchase, yours forever.
+          You have used your {FREE_SESSIONS} free sessions. Go unlimited with a plan.
         </Text>
 
         <View style={styles.perks}>
@@ -115,23 +149,25 @@ export default function PaywallScreen() {
           ))}
         </View>
 
+        <View style={styles.plans}>
+          {renderPlan('weekly', 'week', true)}
+          {renderPlan('monthly', 'month', false)}
+        </View>
+
         <Pressable
-          onPress={onStart}
+          onPress={onContinue}
           disabled={busy}
           style={({ pressed }) => [styles.cta, (pressed || busy) && styles.ctaPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Start free trial"
+          accessibilityLabel="Continue"
         >
-          {busy ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.ctaText}>Unlock for {priceLabel}</Text>
-          )}
+          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.ctaText}>Continue</Text>}
         </Pressable>
 
         <Text style={styles.fine}>
-          One-time purchase. No subscription, no recurring charges. Unlocks the full
-          app on this Apple ID forever.
+          {priceFor(selected)}/{selected === 'weekly' ? 'week' : 'month'}. Plans auto-renew
+          until canceled. Cancel anytime in your Apple ID settings at least 24 hours before the
+          period ends. Payment is charged to your Apple ID.
         </Text>
 
         <Pressable onPress={onRestore} disabled={busy} hitSlop={8} style={styles.restore}>
@@ -140,11 +176,11 @@ export default function PaywallScreen() {
 
         <View style={styles.legalRow}>
           <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8}>
-            <Text style={styles.legalLink}>Terms</Text>
+            <Text style={styles.legalLink}>Terms of Use</Text>
           </Pressable>
           <Text style={styles.legalDot}>·</Text>
           <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8}>
-            <Text style={styles.legalLink}>Privacy</Text>
+            <Text style={styles.legalLink}>Privacy Policy</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -170,27 +206,47 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
   },
-  title: {
-    color: colors.text,
-    fontSize: 26,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  perks: {
-    alignSelf: 'stretch',
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
-    paddingHorizontal: spacing.sm,
-  },
+  title: { color: colors.text, fontSize: 26, fontWeight: '800', textAlign: 'center', marginBottom: spacing.sm },
+  subtitle: { color: colors.textMuted, fontSize: 15, textAlign: 'center', marginBottom: spacing.lg },
+  perks: { alignSelf: 'stretch', gap: spacing.sm, marginBottom: spacing.lg, paddingHorizontal: spacing.sm },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   perkText: { color: colors.text, fontSize: 15, flex: 1 },
+  plans: { alignSelf: 'stretch', gap: spacing.sm, marginBottom: spacing.md },
+  plan: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  planActive: { borderColor: colors.primary, backgroundColor: 'rgba(108,198,255,0.08)' },
+  badge: {
+    position: 'absolute',
+    top: -10,
+    right: 14,
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
+  planTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  planSub: { color: colors.textMuted, fontSize: 12, marginTop: 1 },
+  planPrice: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  planPer: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
   cta: {
     alignSelf: 'stretch',
     backgroundColor: colors.primary,
@@ -199,16 +255,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 54,
+    marginTop: spacing.sm,
   },
   ctaPressed: { opacity: 0.7 },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  fine: {
-    color: colors.textMuted,
-    fontSize: 11,
-    lineHeight: 16,
-    textAlign: 'center',
-    marginTop: spacing.md,
-  },
+  fine: { color: colors.textMuted, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: spacing.md },
   restore: { marginTop: spacing.lg, padding: spacing.sm },
   restoreText: { color: colors.primary, fontSize: 14, fontWeight: '600' },
   legalRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },

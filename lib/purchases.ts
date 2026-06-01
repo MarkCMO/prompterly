@@ -74,22 +74,50 @@ export function usePro(): { isPro: boolean; loading: boolean; gated: boolean } {
   return { isPro, loading, gated };
 }
 
-/** The one-time unlock package from the current offering (lifetime, else first available). */
-export async function getUnlockPackage(): Promise<PurchasesPackage | null> {
-  const offerings = await Purchases.getOfferings();
-  const current = offerings.current;
-  if (!current) return null;
-  return (
-    current.availablePackages.find((p) => p.packageType === 'LIFETIME') ??
-    current.availablePackages[0] ??
-    null
-  );
+export type PlanKey = 'weekly' | 'monthly';
+
+export interface Plan {
+  key: PlanKey;
+  pkg: PurchasesPackage;
+  /** Localized price, e.g. "$4.99". */
+  price: string;
+  /** Billing period word, e.g. "week" / "month". */
+  period: string;
 }
 
-/** Buys the one-time unlock. Returns true if pro is now active. */
-export async function purchasePro(): Promise<boolean> {
-  const pkg = await getUnlockPackage();
-  if (!pkg) throw new Error('The upgrade is not available right now. Try again shortly.');
+/**
+ * The two subscription plans from the current offering (weekly + monthly).
+ * Prefers RevenueCat package types; falls back to offering order so it still
+ * works if the packages are set up as "custom" rather than $rc_weekly/$rc_monthly.
+ */
+export async function getPlans(): Promise<Plan[]> {
+  const offerings = await Purchases.getOfferings();
+  const current = offerings.current;
+  if (!current) return [];
+
+  const weekly = current.availablePackages.find((p) => p.packageType === 'WEEKLY');
+  const monthly = current.availablePackages.find((p) => p.packageType === 'MONTHLY');
+
+  const plans: Plan[] = [];
+  if (weekly) plans.push({ key: 'weekly', pkg: weekly, price: weekly.product.priceString, period: 'week' });
+  if (monthly) plans.push({ key: 'monthly', pkg: monthly, price: monthly.product.priceString, period: 'month' });
+
+  if (plans.length === 0) {
+    // Fallback: take whatever packages exist, in order (weekly first).
+    current.availablePackages.slice(0, 2).forEach((pkg, i) => {
+      plans.push({
+        key: i === 0 ? 'weekly' : 'monthly',
+        pkg,
+        price: pkg.product.priceString,
+        period: i === 0 ? 'week' : 'month',
+      });
+    });
+  }
+  return plans;
+}
+
+/** Buys the chosen plan. Returns true if pro is now active. */
+export async function purchasePlan(pkg: PurchasesPackage): Promise<boolean> {
   const { customerInfo } = await Purchases.purchasePackage(pkg);
   return hasPro(customerInfo);
 }
@@ -97,10 +125,4 @@ export async function purchasePro(): Promise<boolean> {
 export async function restorePro(): Promise<boolean> {
   const info = await Purchases.restorePurchases();
   return hasPro(info);
-}
-
-/** Best-effort price string for the unlock, e.g. "$2.39". */
-export async function getUnlockPriceString(): Promise<string | null> {
-  const pkg = await getUnlockPackage();
-  return pkg?.product.priceString ?? null;
 }
