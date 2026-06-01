@@ -150,16 +150,21 @@ export default function LibraryScreen() {
         }
       />
 
-      <Link href="/script/new" asChild>
-        <Pressable
-          style={[styles.fab, { bottom: insets.bottom + spacing.md }]}
-          accessibilityRole="button"
-          accessibilityLabel="New script"
-        >
-          <Ionicons name="add" size={26} color="#fff" />
-          <Text style={styles.fabText}>New script</Text>
-        </Pressable>
-      </Link>
+      <View
+        pointerEvents="box-none"
+        style={[styles.fabWrap, { paddingBottom: insets.bottom + spacing.md }]}
+      >
+        <Link href="/script/new" asChild>
+          <Pressable
+            style={styles.fab}
+            accessibilityRole="button"
+            accessibilityLabel="New script"
+          >
+            <Ionicons name="add" size={26} color="#fff" />
+            <Text style={styles.fabText}>New script</Text>
+          </Pressable>
+        </Link>
+      </View>
     </View>
   );
 }
@@ -193,9 +198,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  fab: {
+  fabWrap: {
     position: 'absolute',
-    alignSelf: 'center',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+  },
+  fab: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
