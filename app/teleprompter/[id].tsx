@@ -2,9 +2,12 @@ import { type ComponentProps, useCallback, useEffect, useRef, useState } from 'r
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +22,7 @@ import {
   getScript,
   getSessionsUsed,
   incrementSessionsUsed,
+  updateScript,
   FREE_SESSIONS,
 } from '@/lib/storage';
 import type { Script } from '@/lib/types';
@@ -117,6 +121,8 @@ export default function TeleprompterScreen() {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
 
   const cameraRef = useRef<CameraView>(null);
   const prompterRef = useRef<PrompterHandle>(null);
@@ -214,6 +220,24 @@ export default function TeleprompterScreen() {
     prompterRef.current?.reset();
     setPlaying(false);
   };
+
+  // Inline script editing without leaving the teleprompter.
+  const openEditor = useCallback(() => {
+    if (!script) return;
+    setPlaying(false);
+    setControlsVisible(true);
+    setDraft(script.body);
+    setEditing(true);
+  }, [script]);
+
+  const saveDraft = useCallback(async () => {
+    const updated = await updateScript(id, { body: draft });
+    if (updated) {
+      setScript(updated);
+      prompterRef.current?.reset();
+    }
+    setEditing(false);
+  }, [id, draft]);
 
   const startRecording = useCallback(async () => {
     if (!(await consumeSession())) return;
@@ -413,6 +437,12 @@ export default function TeleprompterScreen() {
               size={22}
             />
             <IconButton
+              icon="create-outline"
+              onPress={openEditor}
+              label=""
+              size={22}
+            />
+            <IconButton
               icon="settings-outline"
               onPress={() => router.push('/settings')}
               label=""
@@ -498,6 +528,34 @@ export default function TeleprompterScreen() {
             )}
           </View>
         </View>
+      )}
+
+      {/* Inline script editor - edit the script without leaving the prompter */}
+      {editing && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={[styles.editorOverlay, { paddingTop: insets.top }]}
+        >
+          <View style={styles.editorBar}>
+            <Pressable onPress={() => setEditing(false)} hitSlop={8}>
+              <Text style={styles.editorCancel}>Cancel</Text>
+            </Pressable>
+            <Text style={styles.editorTitle}>Edit script</Text>
+            <Pressable onPress={saveDraft} hitSlop={8}>
+              <Text style={styles.editorSave}>Save</Text>
+            </Pressable>
+          </View>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+            autoFocus
+            placeholder="Your script..."
+            placeholderTextColor={colors.textMuted}
+            style={[styles.editorInput, { paddingBottom: insets.bottom + spacing.lg }]}
+            textAlignVertical="top"
+          />
+        </KeyboardAvoidingView>
       )}
     </View>
   );
@@ -646,4 +704,29 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   permBtnText: { color: '#fff', fontWeight: '700' },
+  editorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.bg,
+    zIndex: 30,
+  },
+  editorBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  editorTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  editorCancel: { color: colors.textMuted, fontSize: 16, fontWeight: '600' },
+  editorSave: { color: colors.primary, fontSize: 16, fontWeight: '800' },
+  editorInput: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 18,
+    lineHeight: 26,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
 });

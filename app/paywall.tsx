@@ -76,7 +76,7 @@ export default function PaywallScreen() {
     }
   }, [onSuccess]);
 
-  const priceLabel = price ?? '$2.39';
+  const priceLabel = price ?? '$2.99';
 
   return (
     <View style={styles.root}>

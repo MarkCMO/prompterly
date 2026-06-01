@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root{
+    --bg:#0B0B0F; --surface:#16161D; --surfaceAlt:#1F1F29; --border:#2A2A36;
+    --text:#F5F5F7; --muted:#9A9AA8; --primary:#6C5CE7; --primaryDark:#5546d6;
+    --danger:#FF5C5C; --success:#2ECC71; --yellow:#FFE66D;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{background:#222;display:flex;flex-wrap:wrap;gap:40px;padding:40px;}
+  /* iPad canvas 12.9" portrait */
+  .pad{width:2048px;height:2732px;position:relative;overflow:hidden;color:var(--text);
+    background:
+      radial-gradient(80% 45% at 50% 12%, rgba(108,92,231,.40), rgba(0,0,0,0) 60%),
+      radial-gradient(70% 40% at 50% 95%, rgba(255,230,109,.08), rgba(0,0,0,0) 60%),
+      linear-gradient(170deg,#1a1538 0%, #110f1c 55%, var(--bg) 100%);}
+  .padcap{padding:150px 150px 0;text-align:center;height:560px;}
+  .padcap h1{font-size:104px;line-height:1.03;font-weight:800;letter-spacing:-2px;}
+  .padcap h1 .accent{color:var(--primary);}
+  .padcap p{font-size:48px;color:var(--muted);font-weight:500;line-height:1.25;margin-top:34px;}
+  /* device mockup */
+  .devicewrap{position:absolute;left:50%;top:560px;transform:translateX(-50%);}
+  .device{width:1290px;height:2796px;border-radius:150px;background:#000;padding:26px;
+    box-shadow:0 50px 130px rgba(0,0,0,.65),0 0 0 6px #2a2a36;transform:scale(.70);transform-origin:top center;}
+  .device .glass{width:100%;height:100%;border-radius:128px;overflow:hidden;position:relative;background:var(--bg);}
+
+  /* ===== app screen content (fills the device) ===== */
+  .app{position:absolute;inset:0;background:var(--bg);overflow:hidden;}
+  .statusbar{height:96px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 80px 18px;font-size:34px;font-weight:700;color:var(--text);}
+  .statusbar .icons{display:flex;gap:12px;align-items:center;font-size:30px;}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 56px 30px;}
+  .nav .title{font-size:58px;font-weight:800;}
+  .nav .gear{width:84px;height:84px;border-radius:50%;background:var(--surfaceAlt);display:flex;align-items:center;justify-content:center;font-size:42px;color:var(--text);border:1px solid var(--border);}
+  .cards{padding:0 56px;display:flex;flex-direction:column;gap:38px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:44px;overflow:hidden;}
+  .card .cbody{padding:48px 50px 32px;}
+  .card .t{font-size:48px;font-weight:800;margin-bottom:16px;}
+  .card .pv{font-size:36px;color:var(--muted);line-height:1.4;}
+  .card .meta{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:30px;margin-top:26px;}
+  .card .acts{display:flex;justify-content:flex-end;gap:22px;padding:0 42px 38px;}
+  .btn{width:96px;height:96px;border-radius:28px;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--surfaceAlt);border:1px solid var(--border);color:var(--text);}
+  .btn.play{background:var(--primary);border:none;color:#fff;}
+  .btn.del{color:var(--danger);}
+  .fab{position:absolute;left:50%;transform:translateX(-50%);bottom:120px;display:flex;align-items:center;gap:18px;background:var(--primary);padding:38px 64px;border-radius:999px;font-size:46px;font-weight:800;color:#fff;box-shadow:0 18px 50px rgba(108,92,231,.5);}
+  .fab .plus{font-size:56px;line-height:1;}
+  .ed{padding:36px 60px;}
+  .ed .label{font-size:32px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:2px;margin:36px 0 18px;}
+  .ed .titleInput{font-size:56px;font-weight:800;border-bottom:2px solid var(--border);padding-bottom:28px;}
+  .ed .bodyBox{margin-top:40px;font-size:44px;line-height:1.6;color:#dcdce4;}
+  .ed .count{position:absolute;bottom:90px;left:60px;right:60px;display:flex;justify-content:space-between;color:var(--muted);font-size:36px;background:var(--surface);border:1px solid var(--border);border-radius:34px;padding:38px 50px;}
+  .ed .count b{color:var(--text);}
+  .camera{position:absolute;inset:0;
+    background:
+      radial-gradient(120% 80% at 70% 25%, rgba(255,176,120,.22), rgba(0,0,0,0) 55%),
+      radial-gradient(120% 90% at 20% 90%, rgba(108,92,231,.18), rgba(0,0,0,0) 60%),
+      linear-gradient(180deg,#23201c 0%, #14110f 55%, #0a0908 100%);}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.42);}
+  .silhouette{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:760px;height:1000px;border-radius:50% 50% 44% 44%/60% 60% 40% 40%;background:radial-gradient(60% 70% at 50% 35%, rgba(60,55,80,.55), rgba(20,18,26,.0) 70%);filter:blur(8px);}
+  .telebar{position:absolute;top:120px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 64px;}
+  .pill{display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:24px 38px;font-size:36px;font-weight:700;}
+  .recdot{width:32px;height:32px;border-radius:50%;background:var(--danger);box-shadow:0 0 24px var(--danger);}
+  .teletext{position:absolute;left:80px;right:80px;top:44%;transform:translateY(-50%);font-size:80px;line-height:1.5;font-weight:800;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.7);}
+  .teletext .dim{opacity:.45;}
+  .teletext .hot{color:var(--yellow);}
+  .guide{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);height:6px;background:linear-gradient(90deg,rgba(255,230,109,0),var(--yellow),rgba(255,230,109,0));opacity:.9;}
+  .guideTri{position:absolute;top:44%;transform:translateY(-50%);width:0;height:0;border-top:34px solid transparent;border-bottom:34px solid transparent;}
+  .guideTri.l{left:22px;border-left:38px solid var(--yellow);}
+  .guideTri.r{right:22px;border-right:38px solid var(--yellow);}
+  .controls{position:absolute;left:0;right:0;bottom:150px;display:flex;flex-direction:column;align-items:center;gap:54px;}
+  .recbtn{width:180px;height:180px;border-radius:50%;background:rgba(255,92,92,.18);border:9px solid #fff;display:flex;align-items:center;justify-content:center;}
+  .recbtn .inner{width:100px;height:100px;border-radius:30px;background:var(--danger);}
+  .stepperRow{display:flex;gap:38px;}
+  .stepper{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);border-radius:36px;padding:26px 44px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:250px;}
+  .stepper .lab{font-size:30px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
+  .stepper .val{font-size:50px;font-weight:800;}
+  .set{padding:24px 60px;display:flex;flex-direction:column;gap:34px;}
+  .group{background:var(--surface);border:1px solid var(--border);border-radius:42px;padding:16px 50px;}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:42px 0;border-bottom:1px solid var(--border);}
+  .row:last-child{border-bottom:none;}
+  .row .rl{font-size:44px;font-weight:600;}
+  .row .rv{font-size:42px;color:var(--muted);font-weight:700;}
+  .slider{width:470px;height:16px;border-radius:999px;background:var(--surfaceAlt);position:relative;}
+  .slider .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--primary);}
+  .slider .knob{position:absolute;top:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.5);}
+  .swatches{display:flex;gap:26px;}
+  .sw{width:80px;height:80px;border-radius:50%;border:4px solid transparent;}
+  .sw.on{border-color:#fff;}
+  .toggle{width:130px;height:74px;border-radius:999px;background:var(--primary);position:relative;}
+  .toggle .dot{position:absolute;top:8px;right:8px;width:58px;height:58px;border-radius:50%;background:#fff;}
+  .toggle.off{background:var(--surfaceAlt);}
+  .toggle.off .dot{left:8px;right:auto;}
+  .segthree{display:flex;background:var(--surfaceAlt);border-radius:26px;overflow:hidden;}
+  .segthree div{padding:24px 44px;font-size:38px;font-weight:700;color:var(--muted);}
+  .segthree div.on{background:var(--primary);color:#fff;}
+  .mirrorbig{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  .mirrortxt{font-size:130px;font-weight:800;color:#fff;transform:scaleX(-1);text-shadow:0 4px 24px rgba(0,0,0,.6);}
+
+  /* iPad hero */
+  .padhero{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 220px;}
+  .padhero .appicon{width:300px;height:300px;border-radius:68px;background:linear-gradient(150deg,var(--primary),#8b7bf0);display:flex;align-items:center;justify-content:center;font-size:160px;margin-bottom:80px;box-shadow:0 36px 100px rgba(108,92,231,.55);}
+  .padhero .badge{font-size:42px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:var(--yellow);margin-bottom:54px;}
+  .padhero h1{font-size:150px;line-height:1.02;font-weight:800;letter-spacing:-4px;}
+  .padhero h1 .accent{color:var(--primary);}
+  .padhero p{font-size:58px;color:var(--muted);font-weight:500;line-height:1.3;margin-top:56px;max-width:1400px;}
+  .padhero .chips{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:96px;}
+  .padhero .chip{font-size:46px;font-weight:700;color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:32px 58px;}
+</style>
+</head>
+<body>
+
+<!-- 0. iPad HERO -->
+<div class="pad" id="ipad0">
+  <div class="padhero">
+    <div class="appicon">🎬</div>
+    <div class="badge">For creators &amp; influencers</div>
+    <h1>The teleprompter<br>built for <span class="accent">creators</span></h1>
+    <p>Read your script right off the screen while you film - and nail every take.</p>
+    <div class="chips">
+      <span class="chip">Reels</span>
+      <span class="chip">TikTok</span>
+      <span class="chip">YouTube</span>
+      <span class="chip">Sales pitches</span>
+    </div>
+  </div>
+</div>
+
+<!-- 1. LIBRARY -->
+<div class="pad" id="ipad1">
+  <div class="padcap"><h1>Your whole script <span class="accent">library</span></h1><p>Save unlimited scripts. Tap one and start reading.</p></div>
+  <div class="devicewrap"><div class="device"><div class="glass">
+    <div class="app">
+      <div class="statusbar"><span>9:41</span><span class="icons">5G&nbsp;&nbsp;100%</span></div>
+      <div class="nav"><span class="title">Prompterly</span><span class="gear">⚙</span></div>
+      <div class="cards">
+        <div class="card"><div class="cbody"><div class="t">Product launch video</div><div class="pv">Hey everyone, today I'm thrilled to finally show you what we've been building for the last six months...</div><div class="meta">🕓 1m 24s read</div></div><div class="acts"><div class="btn play">▶</div><div class="btn">✎</div><div class="btn">⧉</div><div class="btn del">🗑</div></div></div>
+        <div class="card"><div class="cbody"><div class="t">Weekly YouTube intro</div><div class="pv">What's up team, welcome back to the channel. In this video we're breaking down the three things...</div><div class="meta">🕓 48s read</div></div><div class="acts"><div class="btn play">▶</div><div class="btn">✎</div><div class="btn">⧉</div><div class="btn del">🗑</div></div></div>
+        <div class="card"><div class="cbody"><div class="t">Sales call opener</div><div class="pv">Thanks so much for hopping on. Before we dive in, I want to make sure I understand exactly what...</div><div class="meta">🕓 1m 02s read</div></div><div class="acts"><div class="btn play">▶</div><div class="btn">✎</div><div class="btn">⧉</div><div class="btn del">🗑</div></div></div>
+      </div>
+      <div class="fab"><span class="plus">+</span> New script</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- 2. EDITOR -->
+<div class="pad" id="ipad2">
+  <div class="padcap"><h1>Write or paste. <span class="accent">Live</span> word count</h1><p>Know your read time before you ever hit record.</p></div>
+  <div class="devicewrap"><div class="device"><div class="glass">
+    <div class="app">
+      <div class="statusbar"><span>9:41</span><span class="icons">5G&nbsp;&nbsp;100%</span></div>
+      <div class="ed">
+        <div class="label">Title</div>
+        <div class="titleInput">Product launch video</div>
+        <div class="label">Script</div>
+        <div class="bodyBox">Hey everyone, today I'm thrilled to finally show you what we've been building for the last six months. This is the moment we've all been waiting for, and I cannot wait to walk you through every single detail of it...</div>
+        <div class="count"><span><b>214</b> words</span><span><b>1m 24s</b> est. read</span></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- 3. TELEPROMPTER -->
+<div class="pad" id="ipad3">
+  <div class="padcap"><h1>Read while you <span class="accent">record</span></h1><p>Your script scrolls right over the live camera.</p></div>
+  <div class="devicewrap"><div class="device"><div class="glass">
+    <div class="app">
+      <div class="camera"><div class="silhouette"></div></div>
+      <div class="scrim"></div>
+      <div class="statusbar"><span>9:41</span><span class="icons">5G&nbsp;&nbsp;100%</span></div>
+      <div class="telebar"><div class="pill">✕ Close</div><div class="pill"><span class="recdot"></span> 00:12</div></div>
+      <div class="guideTri l"></div><div class="guide"></div><div class="guideTri r"></div>
+      <div class="teletext"><span class="dim">we've been building for the last six months. </span><span class="hot">This is the moment we've all been waiting for,</span><span class="dim"> and I cannot wait to walk you through every detail.</span></div>
+      <div class="controls">
+        <div class="stepperRow"><div class="stepper"><span class="lab">Speed</span><span class="val">25</span></div><div class="stepper"><span class="lab">Font</span><span class="val">52</span></div></div>
+        <div class="recbtn"><div class="inner"></div></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- 4. SETTINGS -->
+<div class="pad" id="ipad4">
+  <div class="padcap"><h1>Tune it to how <span class="accent">you</span> talk</h1><p>Speed, size, color, countdown - all yours.</p></div>
+  <div class="devicewrap"><div class="device"><div class="glass">
+    <div class="app">
+      <div class="statusbar"><span>9:41</span><span class="icons">5G&nbsp;&nbsp;100%</span></div>
+      <div class="set">
+        <div class="group">
+          <div class="row"><span class="rl">Scroll speed</span><div class="slider"><div class="fill" style="width:38%"></div><div class="knob" style="left:38%"></div></div></div>
+          <div class="row"><span class="rl">Font size</span><div class="slider"><div class="fill" style="width:62%"></div><div class="knob" style="left:62%"></div></div></div>
+          <div class="row"><span class="rl">Line spacing</span><div class="slider"><div class="fill" style="width:50%"></div><div class="knob" style="left:50%"></div></div></div>
+        </div>
+        <div class="group">
+          <div class="row"><span class="rl">Text color</span><div class="swatches"><div class="sw" style="background:#FFFFFF"></div><div class="sw on" style="background:#FFE66D"></div><div class="sw" style="background:#7CF5A0"></div><div class="sw" style="background:#6CC6FF"></div><div class="sw" style="background:#FF9F6C"></div></div></div>
+          <div class="row"><span class="rl">Countdown</span><div class="segthree"><div>3s</div><div class="on">5s</div><div>10s</div></div></div>
+        </div>
+        <div class="group">
+          <div class="row"><span class="rl">Mirror mode</span><div class="toggle off"><div class="dot"></div></div></div>
+          <div class="row"><span class="rl">Reading guide</span><div class="toggle"><div class="dot"></div></div></div>
+          <div class="row"><span class="rl">Camera</span><div class="rv">Front</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- 5. STAY ON LENS -->
+<div class="pad" id="ipad5">
+  <div class="padcap"><h1>Stay locked on the <span class="accent">lens</span></h1><p>A focus line keeps your eyes on camera. Mirror mode for rigs.</p></div>
+  <div class="devicewrap"><div class="device"><div class="glass">
+    <div class="app">
+      <div class="camera"><div class="silhouette"></div></div>
+      <div class="scrim"></div>
+      <div class="statusbar"><span>9:41</span><span class="icons">5G&nbsp;&nbsp;100%</span></div>
+      <div class="telebar"><div class="pill">🪞 Mirror on</div><div class="pill">Aa Guide on</div></div>
+      <div class="guideTri l"></div><div class="guide"></div><div class="guideTri r"></div>
+      <div class="mirrorbig"><div class="mirrortxt">look here</div></div>
+      <div class="controls"><div class="pill" style="font-size:40px;padding:30px 56px;">Private by design · nothing leaves your phone</div></div>
+    </div>
+  </div></div></div>
+</div>
+
+</body>
+</html>
