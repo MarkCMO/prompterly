@@ -2,6 +2,7 @@ import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   colors,
@@ -31,6 +32,24 @@ export default function SettingsScreen() {
       style={styles.container}
       contentContainerStyle={{ padding: spacing.md, paddingBottom: insets.bottom + spacing.xl, gap: spacing.lg }}
     >
+      {/* PROMPTERLY PRO */}
+      <Section title="Prompterly Pro" icon="sparkles-outline">
+        <Pressable
+          onPress={() => router.push('/paywall')}
+          style={({ pressed }) => [styles.upgradeRow, pressed && styles.upgradePressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Unlock Prompterly Pro"
+        >
+          <View style={styles.rowLabelWrap}>
+            <Text style={styles.rowLabel}>Unlock Prompterly Pro</Text>
+            <Text style={styles.rowHint}>
+              Unlimited teleprompter sessions. View plans and subscribe.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+        </Pressable>
+      </Section>
+
       {/* CAMERA */}
       <Section title="Camera" icon="videocam-outline">
         <Row
@@ -332,6 +351,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   rowStacked: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
+  upgradeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  upgradePressed: { opacity: 0.6 },
   rowLabelWrap: { flexShrink: 1, gap: 2 },
   rowLabel: { color: colors.text, fontSize: 15, fontWeight: '600' },
   rowHint: { color: colors.textMuted, fontSize: 12, lineHeight: 16 },
