@@ -396,7 +396,7 @@ export default function TeleprompterScreen() {
             in Settings to practice.
           </Text>
           <Pressable style={styles.permBtn} onPress={ensurePermissions}>
-            <Text style={styles.permBtnText}>Grant access</Text>
+            <Text style={styles.permBtnText}>Continue</Text>
           </Pressable>
         </View>
       )}

@@ -1,0 +1,81 @@
+name: iOS → TestFlight (in-house)
+
+# Builds Prompterly on a free GitHub macOS runner via `eas build --local`
+# (no EAS cloud-build quota), then submits to TestFlight.
+#
+# Required repo secrets:
+#   EXPO_TOKEN       - Expo access token for the `markgabrielli` account
+#   ASC_API_KEY_P8   - contents of AuthKey_YRMDQTX998.p8
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-testflight-prompterly
+  cancel-in-progress: false
+
+jobs:
+  build-and-submit:
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EAS_BUILD_NO_EXPO_GO_WARNING: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Verify Expo auth
+        run: eas whoami
+
+      - name: Select newest Xcode (App Store requires iOS 26 SDK)
+        run: |
+          LATEST=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$LATEST" ]; then sudo xcode-select -s "$LATEST/Contents/Developer"; fi
+          xcodebuild -version
+          if ! xcodebuild -showsdks | grep -qiE "iphoneos(26|27|28)"; then
+            echo "::error::iOS 26+ SDK not found on this runner image"; exit 1
+          fi
+
+      - name: Build IPA locally (free compute — no EAS cloud quota)
+        run: |
+          eas build \
+            --platform ios \
+            --profile production \
+            --local \
+            --non-interactive \
+            --output "$GITHUB_WORKSPACE/prompterly.ipa"
+
+      - name: Materialize App Store Connect API key
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/asc"
+          printf '%s' "${{ secrets.ASC_API_KEY_P8 }}" > "$GITHUB_WORKSPACE/asc/AuthKey.p8"
+
+      - name: Submit to TestFlight
+        run: |
+          eas submit \
+            --platform ios \
+            --profile ci \
+            --path "$GITHUB_WORKSPACE/prompterly.ipa" \
+            --non-interactive
+
+      - name: Upload IPA artifact (backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompterly-ipa
+          path: ${{ github.workspace }}/prompterly.ipa
+          if-no-files-found: ignore
+          retention-days: 7

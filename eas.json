@@ -38,6 +38,14 @@
         "ascApiKeyId": "YRMDQTX998",
         "ascApiKeyIssuerId": "b7b9dd56-d867-4b33-b6e0-21e133f8bf12"
       }
+    },
+    "ci": {
+      "ios": {
+        "ascAppId": "6775036750",
+        "ascApiKeyPath": "./asc/AuthKey.p8",
+        "ascApiKeyId": "YRMDQTX998",
+        "ascApiKeyIssuerId": "b7b9dd56-d867-4b33-b6e0-21e133f8bf12"
+      }
     }
   }
 }
