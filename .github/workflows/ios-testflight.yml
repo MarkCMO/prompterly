@@ -79,3 +79,5 @@ jobs:
           path: ${{ github.workspace }}/prompterly.ipa
           if-no-files-found: ignore
           retention-days: 7
+
+# registered 55ce72d
