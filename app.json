@@ -2,7 +2,7 @@
   "expo": {
     "name": "Prompterly",
     "slug": "prompterly",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
     "scheme": "prompterly",
     "userInterfaceStyle": "dark",
@@ -26,7 +26,8 @@
         "NSPhotoLibraryUsageDescription": "Prompterly saves your recordings to your photo library.",
         "UIBackgroundModes": [],
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "17"
     },
     "android": {
       "package": "com.markcmo.prompterly",
