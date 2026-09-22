@@ -33,16 +33,16 @@ export default function SettingsScreen() {
       style={styles.container}
       contentContainerStyle={{ padding: spacing.md, paddingBottom: insets.bottom + spacing.xl, gap: spacing.lg }}
     >
-      {/* GLIDEPROMPT PRO */}
-      <Section title="Glideprompt Pro" icon="sparkles-outline">
+      {/* TELELUME PRO */}
+      <Section title="Telelume Pro" icon="sparkles-outline">
         <Pressable
           onPress={() => router.push('/paywall')}
           style={({ pressed }) => [styles.upgradeRow, pressed && styles.upgradePressed]}
           accessibilityRole="button"
-          accessibilityLabel="Unlock Glideprompt Pro"
+          accessibilityLabel="Unlock Telelume Pro"
         >
           <View style={styles.rowLabelWrap}>
-            <Text style={styles.rowLabel}>Unlock Glideprompt Pro</Text>
+            <Text style={styles.rowLabel}>Unlock Telelume Pro</Text>
             <Text style={styles.rowHint}>
               Unlimited teleprompter sessions. View plans and subscribe.
             </Text>
@@ -202,7 +202,7 @@ export default function SettingsScreen() {
         <Text style={styles.resetText}>Reset to defaults</Text>
       </Pressable>
 
-      <Text style={styles.version}>Glideprompt v{Constants.expoConfig?.version}</Text>
+      <Text style={styles.version}>Telelume v{Constants.expoConfig?.version}</Text>
     </ScrollView>
   );
 }

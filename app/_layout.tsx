@@ -34,7 +34,7 @@ export default function RootLayout() {
             headerShadowVisible: false,
           }}
         >
-          <Stack.Screen name="index" options={{ title: 'Glideprompt' }} />
+          <Stack.Screen name="index" options={{ title: 'Telelume' }} />
           <Stack.Screen
             name="script/[id]"
             options={{ title: 'Edit script', presentation: 'card' }}

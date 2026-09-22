@@ -283,7 +283,7 @@ export default function TeleprompterScreen() {
       } catch {
         dump = String(e);
       }
-      console.error('[Glideprompt] recordAsync failed:', detail, dump);
+      console.error('[Telelume] recordAsync failed:', detail, dump);
       Alert.alert(
         'Recording error',
         detail

@@ -270,7 +270,7 @@ PROMPTERLY_SLIDES = [
      "Read your first scripts free. Upgrade only if you love it.", "font",
      [(0, (70, 130, 90)), (0.55, (40, 80, 70)), (1, (12, 24, 22))],
      ("FREE TO DOWNLOAD", (255, 230, 130), (24, 24, 24))),
-    ([("Get ", PT["text"]), ("Glideprompt", (255, 222, 140))],
+    ([("Get ", PT["text"]), ("Telelume", (255, 222, 140))],
      "Your teleprompter, ready whenever you hit record.", "play",
      [(0, (108, 92, 231)), (0.5, (60, 48, 150)), (1, (16, 14, 34))],
      ("DOWNLOAD NOW", (255, 222, 140), (16, 14, 34))),

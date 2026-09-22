@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Glideprompt",
+    "name": "Telelume",
     "slug": "prompterly",
     "version": "1.0.2",
     "orientation": "default",
@@ -20,10 +20,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.markcmo.prompterly",
       "infoPlist": {
-        "NSCameraUsageDescription": "Glideprompt uses the camera so you can record yourself while reading your script.",
-        "NSMicrophoneUsageDescription": "Glideprompt uses the microphone to record audio with your video.",
-        "NSPhotoLibraryAddUsageDescription": "Glideprompt saves your recordings to your photo library.",
-        "NSPhotoLibraryUsageDescription": "Glideprompt saves your recordings to your photo library.",
+        "NSCameraUsageDescription": "Telelume uses the camera so you can record yourself while reading your script.",
+        "NSMicrophoneUsageDescription": "Telelume uses the microphone to record audio with your video.",
+        "NSPhotoLibraryAddUsageDescription": "Telelume saves your recordings to your photo library.",
+        "NSPhotoLibraryUsageDescription": "Telelume saves your recordings to your photo library.",
         "UIBackgroundModes": [],
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -55,16 +55,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Glideprompt uses the camera so you can record yourself while reading your script.",
-          "microphonePermission": "Glideprompt uses the microphone to record audio with your video.",
+          "cameraPermission": "Telelume uses the camera so you can record yourself while reading your script.",
+          "microphonePermission": "Telelume uses the microphone to record audio with your video.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-media-library",
         {
-          "photosPermission": "Glideprompt saves your recordings to your photo library.",
-          "savePhotosPermission": "Glideprompt saves your recordings to your photo library.",
+          "photosPermission": "Telelume saves your recordings to your photo library.",
+          "savePhotosPermission": "Telelume saves your recordings to your photo library.",
           "isAccessMediaLocationEnabled": true
         }
       ],
