@@ -36,6 +36,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install dependencies (eas submit reads the app config)
+        run: npm ci --legacy-peer-deps
+
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
