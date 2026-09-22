@@ -1,4 +1,5 @@
 import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
@@ -32,16 +33,16 @@ export default function SettingsScreen() {
       style={styles.container}
       contentContainerStyle={{ padding: spacing.md, paddingBottom: insets.bottom + spacing.xl, gap: spacing.lg }}
     >
-      {/* PROMPTERLY PRO */}
-      <Section title="Prompterly Pro" icon="sparkles-outline">
+      {/* GLIDEPROMPT PRO */}
+      <Section title="Glideprompt Pro" icon="sparkles-outline">
         <Pressable
           onPress={() => router.push('/paywall')}
           style={({ pressed }) => [styles.upgradeRow, pressed && styles.upgradePressed]}
           accessibilityRole="button"
-          accessibilityLabel="Unlock Prompterly Pro"
+          accessibilityLabel="Unlock Glideprompt Pro"
         >
           <View style={styles.rowLabelWrap}>
-            <Text style={styles.rowLabel}>Unlock Prompterly Pro</Text>
+            <Text style={styles.rowLabel}>Unlock Glideprompt Pro</Text>
             <Text style={styles.rowHint}>
               Unlimited teleprompter sessions. View plans and subscribe.
             </Text>
@@ -201,7 +202,7 @@ export default function SettingsScreen() {
         <Text style={styles.resetText}>Reset to defaults</Text>
       </Pressable>
 
-      <Text style={styles.version}>Prompterly v1.0.0</Text>
+      <Text style={styles.version}>Glideprompt v{Constants.expoConfig?.version}</Text>
     </ScrollView>
   );
 }

@@ -16,7 +16,7 @@ import { colors, radius, spacing } from '@/constants/theme';
 import { getPlans, purchasePlan, restorePro, type Plan, type PlanKey } from '@/lib/purchases';
 import { FREE_SESSIONS } from '@/lib/storage';
 
-const PRIVACY_URL = 'https://wetyr-legal.pages.dev/privacy-prompterly';
+const PRIVACY_URL = 'https://markcmo.com/glideprompt-privacy';
 const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 const PERKS = [
@@ -135,7 +135,7 @@ export default function PaywallScreen() {
           <Ionicons name="reader" size={44} color="#fff" />
         </View>
 
-        <Text style={styles.title}>Unlock Prompterly</Text>
+        <Text style={styles.title}>Unlock Glideprompt</Text>
         <Text style={styles.subtitle}>
           You have used your {FREE_SESSIONS} free sessions. Go unlimited with a plan.
         </Text>

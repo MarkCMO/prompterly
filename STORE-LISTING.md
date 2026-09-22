@@ -1,4 +1,4 @@
-# Prompterly - App Store / Play Store Submission Pack
+# Glideprompt - App Store / Play Store Submission Pack
 
 Everything you copy-paste into App Store Connect and Google Play Console.
 All copy uses hyphens only (no en/em dashes). Character limits noted per field.
@@ -7,7 +7,7 @@ All copy uses hyphens only (no en/em dashes). Character limits noted per field.
 
 ## 1. Core identity
 
-- **App name:** Prompterly
+- **App name:** Glideprompt
 - **Bundle ID (iOS) / Package (Android):** com.markcmo.prompterly
 - **Version:** 1.0.0
 - **Primary category:** Photo & Video
@@ -21,7 +21,7 @@ All copy uses hyphens only (no en/em dashes). Character limits noted per field.
 
 ### App Name (max 30 chars)
 ```
-Prompterly
+Glideprompt
 ```
 
 ### Subtitle (max 30 chars)
@@ -44,7 +44,7 @@ teleprompter,script,prompter,video,recording,creator,influencer,reels,tiktok,you
 
 ### Description (max 4000 chars)
 ```
-Prompterly turns your phone into a professional teleprompter. Write or paste your script, start the camera, and read your words right off the screen while you record - so you stay locked on the lens and never lose your place.
+Glideprompt turns your phone into a professional teleprompter. Write or paste your script, start the camera, and read your words right off the screen while you record - so you stay locked on the lens and never lose your place.
 
 Built for creators, founders, and anyone who films themselves talking. No more memorizing, no more glancing off-camera, no more reshooting take after take.
 
@@ -75,11 +75,11 @@ Your script library
 Save unlimited scripts on your device. Edit any time with live word and character counts.
 
 Private by design
-Prompterly has no account and no login. Your scripts are stored on your device. Your recordings are saved to your own photo library. Nothing is uploaded, nothing is tracked, and nothing is sold. Ever.
+Glideprompt has no account and no login. Your scripts are stored on your device. Your recordings are saved to your own photo library. Nothing is uploaded, nothing is tracked, and nothing is sold. Ever.
 
-Whether you are filming Reels, TikToks, YouTube videos, course lessons, sales pitches, or webinar intros, Prompterly helps you deliver every line with confidence while looking right down the barrel of the camera.
+Whether you are filming Reels, TikToks, YouTube videos, course lessons, sales pitches, or webinar intros, Glideprompt helps you deliver every line with confidence while looking right down the barrel of the camera.
 
-Download Prompterly and shoot your next video in one take.
+Download Glideprompt and shoot your next video in one take.
 ```
 
 ### Support URL
@@ -94,7 +94,7 @@ https://markcmo.com
 
 ### Privacy Policy URL (REQUIRED)
 ```
-https://markcmo.com/prompterly-privacy
+https://markcmo.com/glideprompt-privacy
 ```
 
 ### Copyright
@@ -113,7 +113,7 @@ When prompted "Do you or your third-party partners collect data from this app?" 
 No, we do not collect data from this app
 ```
 
-Justification (true for Prompterly v1.0.0):
+Justification (true for Glideprompt v1.0.0):
 - No accounts, no login, no backend server.
 - Scripts stored locally via on-device storage (AsyncStorage).
 - Recordings written to the user's own photo library; never uploaded.
@@ -131,13 +131,13 @@ Diagnostics, etc.) answer **No / Not Collected** for every category.
 - Is all user data encrypted in transit? N/A (no data leaves the device)
 - Do you provide a way to request data deletion? **Yes** - users delete scripts
   in-app or uninstall the app; recordings live in the device photo library.
-- Privacy Policy URL: `https://markcmo.com/prompterly-privacy`
+- Privacy Policy URL: `https://markcmo.com/glideprompt-privacy`
 
 ### Play Store listing text
 
 **App title (max 30 chars)**
 ```
-Prompterly - Teleprompter
+Glideprompt - Teleprompter
 ```
 (25 chars)
 
@@ -154,9 +154,9 @@ Read your script on screen while you record video. Private, on-device, no login.
 ## 5. Permission usage strings (already set in app.json)
 
 iOS Info.plist:
-- NSCameraUsageDescription: "Prompterly uses the camera so you can record yourself while reading your script."
-- NSMicrophoneUsageDescription: "Prompterly uses the microphone to record audio with your video."
-- NSPhotoLibraryAddUsageDescription / NSPhotoLibraryUsageDescription: "Prompterly saves your recordings to your photo library."
+- NSCameraUsageDescription: "Glideprompt uses the camera so you can record yourself while reading your script."
+- NSMicrophoneUsageDescription: "Glideprompt uses the microphone to record audio with your video."
+- NSPhotoLibraryAddUsageDescription / NSPhotoLibraryUsageDescription: "Glideprompt saves your recordings to your photo library."
 
 Android permissions:
 - CAMERA, RECORD_AUDIO, READ_MEDIA_VIDEO, WRITE_EXTERNAL_STORAGE
