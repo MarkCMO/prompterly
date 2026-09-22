@@ -1,0 +1,59 @@
+name: iOS → TestFlight (submit an already-built IPA)
+
+# The build job has a 90-minute cap and the local `eas build` now runs close to
+# it, so a slow build gets cancelled before the submit step runs — while the IPA
+# artifact is already saved. This workflow submits that artifact, no rebuild.
+#
+# Usage: run it with the run_id of the build workflow run that produced the IPA.
+#
+# Required repo secrets:
+#   ASC_API_KEY_P8   - contents of AuthKey_YRMDQTX998.p8
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Run ID of the build that uploaded the prompterly-ipa artifact
+        required: true
+
+concurrency:
+  group: ios-submit-artifact
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Download the built IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: prompterly-ipa
+          path: ${{ github.workspace }}/ipa
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Materialize App Store Connect API key
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/asc"
+          printf '%s' "${{ secrets.ASC_API_KEY_P8 }}" > "$GITHUB_WORKSPACE/asc/AuthKey.p8"
+
+      - name: Submit to TestFlight
+        run: |
+          eas submit \
+            --platform ios \
+            --profile ci \
+            --path "$GITHUB_WORKSPACE/ipa/prompterly.ipa" \
+            --non-interactive

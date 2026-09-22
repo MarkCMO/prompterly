@@ -1,0 +1,25 @@
+DRAFT - NOT SENT. Review, edit, then send from Mark's mailbox.
+
+To:      (Apple Legal - reply to Caroline's email so it threads)
+Cc:      apple@clidoapps.com
+Subject: APP282073 - Prompterly (Apple ID 6775036750) - app renamed to Telelume
+
+Hello Caroline, and hello Nico,
+
+Thanks for the notice. I am not interested in a fight over a name, so I have
+renamed my app rather than argue the point.
+
+The app is now called Telelume. The new name is set on version 1.0.2 in App
+Store Connect, which has been submitted for review. I have also renamed
+everything outside the App Store already: the app's marketing pages, the
+privacy policy, and the subscription names. The old web addresses redirect to
+the new ones, so nothing of mine still uses the Prompterly name there.
+
+Nico, once Apple approves 1.0.2, the Prompterly name will be gone from my app
+and its listing entirely. If you spot it anywhere of mine after that, email me
+and I will take care of it.
+
+Caroline, I will let you know as soon as the new version is live.
+
+Mark Gabrielli
+mark@markcmo.com
