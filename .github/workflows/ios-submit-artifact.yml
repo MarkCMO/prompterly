@@ -24,6 +24,8 @@ jobs:
   submit:
     runs-on: macos-26
     timeout-minutes: 45
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
     steps:
       - name: Checkout
